@@ -1,0 +1,164 @@
+---
+title: "Final Project"
+format: html
+editor: visual
+---
+
+## Final Project Code
+
+```{r}
+library(tidyverse)
+library(ggthemes)
+library(sf)
+
+```
+
+```{r}
+data = read_csv(here::here("MUP_PHY_R24_P07_V10_D22_Prov.csv"))
+head(data)
+```
+
+You can add options to executable code like this
+
+```{r}
+NC_data = data |>
+  filter(Rndrng_Prvdr_State_Abrvtn == "NC")
+print(NC_data)
+```
+
+```{r}
+extracted_data = NC_data |>
+  select(
+    Rndrng_Prvdr_Last_Org_Name, 
+    Rndrng_Prvdr_First_Name, 
+    Rndrng_Prvdr_Gndr, 
+    Rndrng_Prvdr_St1, 
+    Rndrng_Prvdr_St2, 
+    Rndrng_Prvdr_City, 
+    Rndrng_Prvdr_State_Abrvtn, 
+    Rndrng_Prvdr_Zip5, 
+    Rndrng_Prvdr_Type
+  )
+
+head(extracted_data)
+```
+
+```{r}
+unique(extracted_data$Rndrng_Prvdr_Type)
+```
+
+```{r}
+
+filtered_data = c("Family Practice", "Internal Medicine", "Physician Assistant", "Nurse Practitioner", "Pediatric Medicine", "Obstetrics & Gynecology", "Psychiatry", "Dentist", "Pharmacy")
+
+NC_filtered = extracted_data[extracted_data$Rndrng_Prvdr_Type %in% filtered_data, ]
+print(NC_filtered)
+```
+
+```{r}
+write.csv(NC_filtered, "NC_filtered_healthcare.csv", row.names = FALSE)
+```
+
+```{r}
+data_final = read_csv("C:/Users/adeininger/Documents/census_blocks.csv")
+head(data)
+```
+
+```{r}
+library(sf)
+```
+
+```{r}
+census_demographics = read_csv("C:/Users/adeininger/Desktop/plan372/hw3-data/triangle_census.csv")
+```
+
+```{r}
+data_census = left_join(data_final, census_demographics, by="GEOID")
+```
+
+```{r}
+head(data_census)
+```
+
+```{r}
+total_population = data_census |>
+  summarize(total_population = sum(total_population, na.rm = TRUE))
+print(total_population)
+```
+
+```{r}
+total_population_health_desert = data_census |>
+  filter(NearHealth == 0) |>
+  summarize(total_population_health_desert = sum(total_population, na.rm = TRUE))
+print(total_population_health_desert)
+```
+
+```{r}
+total_seniors = data_census |>
+  summarize(total_seniors = sum(seniors_65plus, na.rm = TRUE))
+print(total_seniors)
+```
+
+```{r}
+total_seniors = data_census |>
+  filter(NearHealth == 0) |>
+  summarize(total_seniors = sum(seniors_65plus, na.rm = TRUE))
+print(total_seniors)
+```
+
+```{r}
+total_seniors_not = data_census |>
+  filter(NearHealth == 1) |>
+  summarize(total_seniors = sum(seniors_65plus, na.rm = TRUE))
+print(total_seniors_not)
+```
+
+```{r}
+print(colnames(data_census))
+```
+
+```{r}
+total_households = data_census |>
+  summarize(total_households = sum(total_households, na.rm = TRUE))
+print(total_households)
+```
+
+```{r}
+total_households_desert = data_census |>
+  filter(NearHealth == 0) |>
+  summarize(total_households_desert= sum(total_households, na.rm = TRUE))
+print(total_households_desert)
+  
+```
+
+```{r}
+total_low_income_desert = data_census |>
+  filter(NearHealth == 0) |>
+  summarize(total_low_income_desert = sum(households_income_less_than_35k , na.rm = TRUE))
+print(total_low_income_desert)
+```
+
+```{r}
+total_low_income_triangle = data_census |>
+  summarize(total_low_income_triangle = sum(households_income_less_than_35k , na.rm = TRUE))
+print(total_low_income_triangle)
+```
+
+```{r}
+block_groups = read_sf("C:/Users/adeininger/Desktop/plan372/hw3-data/orange_durham_wake_block_groups.shp")
+print(block_groups)
+```
+
+```{r}
+data_census$GEOID = as.character(data_census$GEOID)
+```
+
+```{r}
+data_census_block = left_join(block_groups, data_census, by="GEOID")
+print(data_census_block)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data=data_census_block, aes(fill=seniors_65plus), lwd=0)
+```
